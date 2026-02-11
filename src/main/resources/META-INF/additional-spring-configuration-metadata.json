@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "app.storage.location",
+      "type": "java.lang.String",
+      "description": "Directory for storing uploaded files",
+      "defaultValue": "uploads"
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Hub</title>
+    <!-- Tailwind CSS (via CDN for simplicity) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #0f172a;
+        }
+
+        .chic-bg {
+            background: radial-gradient(circle at top left, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .doc-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .doc-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .chat-bubble-user {
+            background: #334155;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-bubble-bot {
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-luxury {
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+            color: #0f172a;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-luxury:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .input-chic {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .input-chic:focus {
+            border-color: #94a3b8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.2);
+        }
+        
+        .htmx-indicator {
+            display: none;
+        }
+        
+        .htmx-request .htmx-indicator {
+            display: flex;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="chic-bg min-h-screen text-slate-200 overflow-hidden">
+    <div class="h-screen flex flex-col px-6 py-6 overflow-hidden">
+        <header class="mb-4 text-center flex-shrink-0">
+            <div class="inline-block">
+                <div class="flex items-center justify-center gap-2 mb-1">
+                    <span class="h-px w-8 bg-slate-700"></span>
+                    <span class="text-slate-500 tracking-[0.4em] text-[9px] uppercase font-medium">Intelligent Workspace</span>
+                    <span class="h-px w-8 bg-slate-700"></span>
+                </div>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                    AI DOCUMENT HUB
+                </h1>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 min-h-0">
+            <!-- Sidebar: Document Repository -->
+            <div class="lg:col-span-1 h-full flex flex-col min-h-0">
+                <div class="glass-card rounded-3xl p-6 flex flex-col h-full overflow-hidden">
+                    <div class="flex items-center justify-between mb-6 pb-2 border-b border-slate-700/50 flex-shrink-0">
+                        <h2 class="text-sm font-semibold tracking-wide text-slate-100 uppercase">Document</h2>
+                        <span class="text-[10px] text-slate-500">ドキュメント</span>
+                    </div>
+                    
+                    <!-- Upload Section -->
+                    <div class="flex-shrink-0">
+                        <form method="POST" action="/upload" enctype="multipart/form-data" class="mb-6">
+                            <div class="mb-4">
+                                <label class="block text-[10px] font-medium text-slate-400 mb-2 uppercase tracking-widest">新規追加</label>
+                                <input type="file" name="file" accept=".pdf,.txt,.md" 
+                                       class="block w-full text-[10px] text-slate-400
+                                              file:mr-2 file:py-1.5 file:px-3
+                                              file:rounded-full file:border-0
+                                              file:text-[10px] file:font-semibold
+                                              file:bg-slate-700 file:text-slate-200
+                                              file:cursor-pointer hover:file:bg-slate-600
+                                              file:transition-all" />
+                            </div>
+                            <button type="submit" class="w-full btn-luxury py-2 rounded-xl font-bold uppercase tracking-widest text-[10px]">
+                                保存する
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Archive List -->
+                    <div class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-style">
+                        <div th:each="doc : ${documents}" class="doc-item p-3 rounded-xl bg-slate-900/40 border border-slate-700/30 group">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1 min-w-0 pr-3">
+                                    <div class="text-xs font-semibold text-slate-200 truncate group-hover:text-white transition-colors" th:text="${doc.filename}">filename.pdf</div>
+                                    <div class="text-[9px] text-slate-500 font-mono mt-0.5" th:text="${#temporals.format(doc.uploadedAt, 'yy.MM.dd | HH:mm')}">Date</div>
+                                </div>
+                                <span th:if="${doc.indexed}" class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1" title="処理済み"></span>
+                            </div>
+                            <div class="flex justify-end mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <form method="POST" action="/delete" onsubmit="return confirm('アーカイブから削除しますか?');">
+                                    <input type="hidden" name="id" th:value="${doc.id}" />
+                                    <button type="submit" class="text-slate-500 hover:text-rose-400 p-1 transition-colors" title="削除">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main: Analytical Workspace -->
+            <div class="lg:col-span-3 h-full flex flex-col min-h-0">
+                <div class="glass-card rounded-[2rem] p-8 flex flex-col h-full overflow-hidden">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/50 flex-shrink-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                                <span class="text-[10px] font-bold text-slate-900">AI</span>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white tracking-tight">AIチャット</h2>
+                                <p class="text-[9px] text-slate-500 font-medium uppercase tracking-[0.2em]">Status: Ready</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Insight History -->
+                    <div id="chat-history" class="flex-1 overflow-y-auto mb-6 p-4 space-y-4 scrollbar-style">
+                        <div class="flex items-start">
+                            <div class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl rounded-tl-none max-w-[80%]">
+                                <p class="text-xs leading-relaxed text-slate-300">
+                                    ドキュメントについて、質問を入力してください。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Query Interaction -->
+                    <div class="flex-shrink-0 pt-2 border-t border-slate-700/30">
+                        <div class="relative">
+                            <form hx-post="/ask" 
+                                  hx-target="#chat-history" 
+                                  hx-swap="beforeend"
+                                  hx-indicator="#loading-indicator"
+                                  id="chat-form"
+                                  class="relative">
+                                <input type="text" 
+                                       name="message" 
+                                       id="message-input"
+                                       placeholder="質問を入力してください..." 
+                                       class="input-chic w-full rounded-xl pl-5 pr-28 py-4 text-xs font-light tracking-wide focus:ring-0"
+                                       required 
+                                       autocomplete="off" />
+                                <button type="submit" 
+                                        class="absolute right-2 top-2 bottom-2 btn-luxury px-6 rounded-lg font-bold text-[9px] uppercase tracking-widest">
+                                    送信
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'chat-history') {
+                document.getElementById('message-input').value = '';
+                const chatHistory = document.getElementById('chat-history');
+                chatHistory.scrollTo({
+                    top: chatHistory.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    </script>
+</body>
+</html>
