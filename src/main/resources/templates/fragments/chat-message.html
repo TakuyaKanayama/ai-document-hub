@@ -28,7 +28,7 @@
     <div th:fragment="message">
         <!-- User Question -->
         <div class="flex items-end justify-end mb-8">
-            <div class="chat-bubble-user p-6 rounded-[2rem] rounded-tr-none max-w-[85%]">
+            <div class="chat-bubble-user p-6 rounded-full max-w-[85%]">
                 <div class="flex items-center mb-2 opacity-50">
                     <span class="text-[10px] uppercase tracking-widest font-bold">User Request</span>
                 </div>
@@ -39,14 +39,14 @@
         <!-- Bot Answer -->
         <div class="flex items-start mb-8">
             <div th:class="${isError} ? 'chat-bubble-error' : 'chat-bubble-bot'" 
-                 class="p-6 rounded-[2rem] rounded-tl-none max-w-[85%]">
+                 class="p-6 rounded-full max-w-[85%]">
                 <div class="flex items-center mb-3">
                     <div th:unless="${isError}" class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center mr-3">
                         <span class="text-[8px] font-bold text-slate-900">AI</span>
                     </div>
                     <span th:if="${isError}" class="text-rose-500 mr-2">!</span>
                     <span class="text-[10px] uppercase tracking-[0.2em] font-bold opacity-60" 
-                          th:text="${isError} ? 'System Error' : 'Synthesis Output'">Synthesis Output</span>
+                          th:text="${isError} ? 'System Error' : 'Synthesis Output'">AI</span>
                 </div>
                 <div class="prose prose-sm prose-invert max-w-none">
                     <p class="text-sm leading-relaxed text-slate-300" th:text="${answer}"></p>

@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -102,7 +103,10 @@ public class AiDocController {
      * @return HTMXフラグメントまたはテンプレート
      */
     @PostMapping("/ask")
-    public String ask(@RequestParam("message") String message, Model model) {
+    public String ask(@RequestParam("message") String message, Model model, HttpHeaders headers) {
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
         try {
             String answer = ragService.generateAnswer(message);
             model.addAttribute("question", message);

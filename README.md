@@ -107,6 +107,9 @@ http://localhost:8080
 | `SPRING_DATASOURCE_URL` | JDBC URL | jdbc:postgresql://localhost:5432/aidoc |
 | `SPRING_DATASOURCE_USERNAME` | DBユーザー名 | postgres |
 | `SPRING_DATASOURCE_PASSWORD` | DBパスワード | password |
+| `POSTGRES_USER` | Docker Compose用DBユーザー名 | postgres |
+| `POSTGRES_PASSWORD` | Docker Compose用DBパスワード | password |
+| `POSTGRES_DB` | Docker Compose用DB名 | aidoc |
 
 ## APIキー取得方法
 

@@ -174,7 +174,7 @@
                             </div>
                             <div>
                                 <h2 class="text-lg font-bold text-white tracking-tight">AIチャット</h2>
-                                <p class="text-[9px] text-slate-500 font-medium uppercase tracking-[0.2em]">Status: Ready</p>
+                                <p class="text-[9px] text-slate-500 font-medium uppercase tracking-[0.2em]" id="ai-status">Status: Ready</p>
                             </div>
                         </div>
                     </div>
@@ -182,9 +182,9 @@
                     <!-- Insight History -->
                     <div id="chat-history" class="flex-1 overflow-y-auto mb-6 p-4 space-y-4 scrollbar-style">
                         <div class="flex items-start">
-                            <div class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl rounded-tl-none max-w-[80%]">
+                            <div class="bg-slate-800/50 border border-slate-700/50 p-6 rounded-full max-w-[80%]">
                                 <p class="text-xs leading-relaxed text-slate-300">
-                                    ドキュメントについて、質問を入力してください。
+                                    こんにちは。ドキュメントについて、質問を入力してください。
                                 </p>
                             </div>
                         </div>
@@ -197,6 +197,8 @@
                                   hx-target="#chat-history" 
                                   hx-swap="beforeend"
                                   hx-indicator="#loading-indicator"
+                                  hx-on::before-request="showThinking()"
+                                  hx-on::after-request="hideThinking(event)"
                                   id="chat-form"
                                   class="relative">
                                 <input type="text" 
@@ -219,8 +221,53 @@
     </div>
     
     <script>
+        // HTMX キャッシュ無効化
+        htmx.config.cacheRequests = false;
+        
+        let thinkingBubbleId = null;
+        
+        function showThinking() {
+            const chatHistory = document.getElementById('chat-history');
+            thinkingBubbleId = 'thinking-' + Date.now();
+            const thinkingBubble = `
+                <div id="${thinkingBubbleId}" class="flex items-start mb-8">
+                    <div class="chat-bubble-bot p-6 rounded-full max-w-[85%]">
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-[8px] font-bold text-slate-900">AI</span>
+                            </div>
+                            <span class="text-[10px] uppercase tracking-[0.2em] font-bold opacity-60">Thinking...</span>
+                        </div>
+                        <div class="mt-3 flex gap-1">
+                            <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                            <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                            <div class="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatHistory.insertAdjacentHTML('beforeend', thinkingBubble);
+            chatHistory.scrollTo({
+                top: chatHistory.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        function hideThinking(event) {
+            if (thinkingBubbleId) {
+                const thinkingBubble = document.getElementById(thinkingBubbleId);
+                if (thinkingBubble) {
+                    thinkingBubble.remove();
+                }
+                thinkingBubbleId = null;
+            }
+        }
+        
         document.body.addEventListener('htmx:afterSwap', function(event) {
             if (event.detail.target.id === 'chat-history') {
+                // 「考え中」バブルを削除
+                hideThinking(event);
+                
                 document.getElementById('message-input').value = '';
                 const chatHistory = document.getElementById('chat-history');
                 chatHistory.scrollTo({
