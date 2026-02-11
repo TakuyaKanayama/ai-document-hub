@@ -2,7 +2,7 @@
 
 AI Document Hubは、Spring BootとGemini AIを使用したRAG（Retrieval-Augmented Generation：検索拡張生成）アプリケーションです。
 
-<img width="1901" height="897" alt="スクリーンショット 2026-02-11 235750" src="https://github.com/user-attachments/assets/6243060f-78b9-4c51-a00b-77ba9e3e9d42" />
+![メイン画面](images/スクリーンショット%202026-02-11%20235750.png)
 
 ## できること
 
